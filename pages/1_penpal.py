@@ -13,55 +13,57 @@ from langchain.memory import (ConversationBufferMemory)
 sys.path.append('../..')
 
 from dotenv import load_dotenv, find_dotenv
-_ = load_dotenv(find_dotenv()) # read local .env file
 
-openai.api_key  = os.environ['OPENAI_API_KEY']
+_ = load_dotenv(find_dotenv())  # read local .env file
 
-st.title('Polyglot Chat')
+openai.api_key = os.environ['OPENAI_API_KEY']
+
+st.title('Famous Pen Pals')
 with st.expander('Instructions'):
-    st.markdown(':green[*either* ]:orange[ type any word or phrase into the chat below]')
-    st.markdown(':green[*or* ]:orange[ type :blue["qs"] plus a word to discover the English meaning.]')
-    st.caption(':orange[*for example, type :blue["qs villa"] to find out the definition of the word "villa."*]'
-               ' :grey[*(qs = quid significat? "What does ... mean?")*]')
+    st.markdown(':blue[1. type your name in the sidebar]')
+    st.markdown(':orange[2. choose a famous historical person, literary figure, or author]')
+    st.markdown(':green[3. ask them a question and they will reply in a letter to you]')
 
 with st.sidebar:
     option = st.selectbox(
-        'Choose a language:',
-        ('Latin', 'Spanish', 'Mandarin')
+        'Choose a category:',
+        ('Historical Figure', 'Fictional Figure', 'Author')
     )
 
-    if option == 'Latin':
+    if option == 'Historical Figure':
         author_option = st.selectbox(
-            'Choose an author for the AI to imitate:',
-            ('Caesar', 'Cicero', 'Tacitus', 'Catullus', 'Lucretius', 'Ovid', 'Petronius', 'Bede', 'John Gower')
+            'Choose a historical figure for the AI to imitate:',
+            ('Martin Luther King, Jr.', 'Amelia Earhart', 'Winston Churchill', 'Anna May Wong', 'Nelson Mandela',
+             'Marie Curie', 'Wolfgang Amadeus Mozart', 'Karl Marx', 'Gautama Buddha', 'Leonardo da Vinci',
+             'Jerry Garcia', 'Dali Llama')
         )
-    elif option == "Spanish":
+    elif option == "Fictional Figure":
         author_option = st.selectbox(
-            'Choose an author for the AI to imitate:',
-            ('Borges', 'Paz', 'Neruda', 'Marquez', 'Cervantes', 'Lorca')
+            'Choose a literary figure for the AI to imitate:',
+            ('Hermione Granger', 'Nancy Drew', "Prince Hamlet", 'Atticus Finch', 'Willy Wonka',
+             'Gandalf', 'Captain Ahab', 'Columbo', 'Phil Dunphy', 'Sam Malone', 'George Costanza')
         )
     else:
         author_option = st.selectbox(
             'Choose an author for the AI to imitate:',
-            ('Confucius', 'Lao Tse', 'Wang Wei', 'Luo Guanzhong', 'Lu Xun')
+            ('Homer', 'Jane Austen', 'Leo Tolstoy', 'Emily Dickinson', 'Franz Kafka', 'William Shakespeare',
+             'Maya Angelou', 'Edgar Allan Poe')
         )
 
-    title_template = PromptTemplate(
-        input_variables = ['concept'],
-        partial_variables = {'language': option},
-        template='Completely ignore the letters, "q" and "s" that {concept} begins with, then give the dictionary entry for the {language} word.'
-    )
+    userName = st.text_input("Type your name: ")
 
-    script_template = PromptTemplate(
-        input_variables = ['convo'],
-        partial_variables = {'language': option, 'author': author_option},
-        template='''Do not repeat {convo} when responding. If {convo} is in English, reply to it in {language}.  Reply in {language} to {convo} with no English translation.  
-        Use the {language} in the style of {author}.'''
-    )
-
+# AI template which passes framework for response
+script_template = PromptTemplate(
+    input_variables=['convo'],
+    partial_variables={'author': author_option, 'name': userName},
+    template='''Reply to the {convo} as if you are the {author}.  You reply in the same style that {author} would write in.  
+    Always respond in English.  Reply as if composing a letter to {name} with the closing and signature on its own line.  
+    Do not write a poem or an essay.  
+    If {convo} contains profanity, condemn the use of profanity. 
+    Limit the response to 800 tokens.'''
+)
 memoryS = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
-model = OpenAI(max_tokens=300, temperature=0)
-chainT = LLMChain(llm=model, prompt=title_template, verbose=True, output_key='title')
+model = OpenAI(temperature=0, max_tokens=500)
 chainS = LLMChain(llm=model, prompt=script_template, verbose=True, output_key='script', memory=memoryS)
 
 # Initialize chat history
@@ -74,21 +76,14 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
 
 # Format chat input and print it to screen
-if input_text := st.chat_input("Quid agis?"):
+if input_text := st.chat_input("Type Here:"):
     with st.chat_message("user"):
         st.markdown(input_text)
     # Add user message to chat history
     st.session_state.messages.append({"role": "user", "content": input_text})
 
-# Display the output if the the user gives an input - qs = define, else converse
-if input_text and input_text[:2] == "qs":
-    with st.chat_message("assistant"):
-        message_placeholder = st.empty()
-        title = chainT.run(input_text)
-        message_placeholder.markdown(title)
-        st.session_state.messages.append({"role": "assistant", "content": title})
-
-elif input_text:
+# Display the output if the the user types any input
+if input_text:
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
         full_response = ""
@@ -99,9 +94,10 @@ elif input_text:
                 time.sleep(0.05)
                 # Add a blinking cursor to simulate typing
                 message_placeholder.markdown(full_response + "▌")
+            # Add return spaces in markdown
             full_response += """
 
             """
         message_placeholder.markdown(full_response)
-        st.session_state.messages.append({"role": "assistant", "content": full_response})
+        st.session_state.messages.append({"role": "assistant", "content": script})
 
