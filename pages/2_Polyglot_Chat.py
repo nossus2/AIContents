@@ -3,7 +3,6 @@ import openai
 import sys
 import streamlit as st
 import time
-import pyautogui
 
 
 from langchain.llms import OpenAI
@@ -60,9 +59,6 @@ with st.sidebar:
         template='''Do not repeat {convo} when responding. If {convo} is in English, reply to it in {language}.  Reply in {language} to {convo} with no English translation.  
         Use the {language} in the style of {author}.'''
     )
-
-    if st.button("Reset", type="primary"):
-        pyautogui.hotkey("ctrl", "F5")
 
 memoryS = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
 model = OpenAI(max_tokens=300, temperature=0)
