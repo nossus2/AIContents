@@ -5,6 +5,7 @@ import streamlit as st
 import time
 
 from langchain.llms import OpenAI
+from streamlit_js_eval import streamlit_js_eval
 
 from langchain.chains import LLMChain
 from langchain.prompts import (PromptTemplate)
@@ -52,6 +53,8 @@ with st.sidebar:
 
     userName = st.text_input("Type your name: ")
 
+    if st.button("Reset", type="primary"):
+        streamlit_js_eval(js_expressions="parent.window.location.reload()")
 
 # AI template which passes framework for response
 script_template = PromptTemplate(

@@ -4,7 +4,7 @@ import sys
 import streamlit as st
 import time
 
-
+from streamlit_js_eval import streamlit_js_eval
 from langchain.llms import OpenAI
 
 from langchain.chains import LLMChain
@@ -59,6 +59,9 @@ with st.sidebar:
         template='''Do not repeat {convo} when responding. If {convo} is in English, reply to it in {language}.  Reply in {language} to {convo} with no English translation.  
         Use the {language} in the style of {author}.'''
     )
+
+    if st.button("Reset", type="primary"):
+        streamlit_js_eval(js_expressions="parent.window.location.reload()")
 
 memoryS = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
 model = OpenAI(max_tokens=300, temperature=0)
