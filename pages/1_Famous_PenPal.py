@@ -3,6 +3,7 @@ import openai
 import sys
 import streamlit as st
 import time
+import pyautogui
 
 from langchain.llms import OpenAI
 
@@ -51,6 +52,9 @@ with st.sidebar:
         )
 
     userName = st.text_input("Type your name: ")
+
+    if st.button("Reset", type="primary"):
+        pyautogui.hotkey("ctrl", "F5")
 
 # AI template which passes framework for response
 script_template = PromptTemplate(
