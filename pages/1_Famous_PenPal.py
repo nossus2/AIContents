@@ -36,13 +36,13 @@ with st.sidebar:
             'Choose a historical figure for the AI to imitate:',
             ('Martin Luther King, Jr.', 'Amelia Earhart', 'Winston Churchill', 'Anna May Wong', 'Nelson Mandela',
              'Marie Curie', 'Wolfgang Amadeus Mozart', 'Karl Marx', 'Gautama Buddha', 'Leonardo da Vinci',
-             'Jerry Garcia', 'Dali Llama')
+             'Jerry Garcia', 'Dali Llama', 'Carl Jung')
         )
     elif option == "Fictional Figure":
         author_option = st.selectbox(
             'Choose a literary figure for the AI to imitate:',
             ('Hermione Granger', 'Nancy Drew', "Prince Hamlet", 'Atticus Finch', 'Willy Wonka',
-             'Gandalf', 'Captain Ahab', 'Columbo', 'Phil Dunphy', 'Sam Malone', 'George Costanza')
+             'Gandalf', 'Captain Ahab', 'Columbo', 'Superman', 'George Costanza')
         )
     else:
         author_option = st.selectbox(
@@ -63,7 +63,6 @@ script_template = PromptTemplate(
     template='''Reply to the {convo} as if you are the {author}.  You reply in the same style that {author} would write in.  
     Always respond in English.  Reply as if composing a letter to {name} with the closing and signature on its own line.  
     Do not write a poem or an essay.  
-    If {convo} contains profanity, condemn the use of profanity. 
     Limit the response to 800 tokens.'''
 )
 memoryS = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
