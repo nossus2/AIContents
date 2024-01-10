@@ -4,7 +4,6 @@ import sys
 import streamlit as st
 import time
 
-from streamlit_js_eval import streamlit_js_eval
 from langchain.llms import OpenAI
 
 from langchain.chains import LLMChain
@@ -60,13 +59,17 @@ with st.sidebar:
         Use the {language} in the style of {author}.'''
     )
 
-    if st.button("Reset", type="primary"):
-        streamlit_js_eval(js_expressions="parent.window.location.reload()")
-
 memoryS = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
 model = OpenAI(max_tokens=300, temperature=0)
 chainT = LLMChain(llm=model, prompt=title_template, verbose=True, output_key='title')
 chainS = LLMChain(llm=model, prompt=script_template, verbose=True, output_key='script', memory=memoryS)
+
+with st.sidebar:
+    # reset button
+    if st.button("Clear Messages", type="primary"):
+        # streamlit_js_eval(js_expressions="parent.window.location.reload()")
+        st.session_state.messages.clear()
+        memoryS.clear()
 
 # Initialize chat history
 if "messages" not in st.session_state:

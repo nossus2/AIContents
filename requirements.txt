@@ -2,4 +2,3 @@ openai
 langchain
 python-dotenv
 streamlit
-streamlit-js-eval

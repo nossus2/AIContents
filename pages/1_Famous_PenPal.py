@@ -5,7 +5,6 @@ import streamlit as st
 import time
 
 from langchain.llms import OpenAI
-from streamlit_js_eval import streamlit_js_eval
 
 from langchain.chains import LLMChain
 from langchain.prompts import (PromptTemplate)
@@ -53,9 +52,6 @@ with st.sidebar:
 
     userName = st.text_input("Type your name: ")
 
-    if st.button("Reset", type="primary"):
-        streamlit_js_eval(js_expressions="parent.window.location.reload()")
-
 # AI template which passes framework for response
 script_template = PromptTemplate(
     input_variables=['convo'],
@@ -68,6 +64,13 @@ script_template = PromptTemplate(
 memoryS = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
 model = OpenAI(temperature=0, max_tokens=500)
 chainS = LLMChain(llm=model, prompt=script_template, verbose=True, output_key='script', memory=memoryS)
+
+with st.sidebar:
+    # reset button
+    if st.button("Clear Messages", type="primary"):
+        # streamlit_js_eval(js_expressions="parent.window.location.reload()")
+        st.session_state.messages.clear()
+        memoryS.clear()
 
 # Initialize chat history
 if "messages" not in st.session_state:
