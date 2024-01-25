@@ -94,6 +94,7 @@ if input_text:
         message_placeholder = st.empty()
         full_response = ""
         from openai import OpenAI
+
         client = OpenAI()
         moderate_dict = client.moderations.create(input=input_text).model_dump()
         is_flagged = moderate_dict["results"][0]["flagged"]
@@ -101,17 +102,16 @@ if input_text:
             st.write("There is something inappropriate about what you asked.")
         else:
             script = chainS.invoke(input_text)
-            #for chunk in script.splitlines():
-                #for letter in chunk.split():
-                    #full_response += letter + " "
-                    #time.sleep(0.05)
+            for chunk in script['script'].splitlines():
+                for letter in chunk.split():
+                    full_response += letter + " "
+                    time.sleep(0.05)
                     # Add a blinking cursor to simulate typing
-                    #message_placeholder.markdown(full_response + "▌")
+                    message_placeholder.markdown(full_response + "▌")
                 # Add return spaces in markdown
-                #full_response += """
-        
-               # """
-            #message_placeholder.markdown(full_response)
-            message_placeholder.markdown(script)
-            st.session_state.messages.append({"role": "assistant", "content": script})
+                full_response += """
+
+             """
+            message_placeholder.markdown(full_response)
+            st.session_state.messages.append({"role": "assistant", "content": full_response})
 

@@ -100,7 +100,7 @@ elif input_text:
         message_placeholder = st.empty()
         full_response = ""
         script = chainS.invoke(input_text)
-        for chunk in script.splitlines():
+        for chunk in script['script'].splitlines():
             for letter in chunk.split():
                 full_response += letter + " "
                 time.sleep(0.05)
