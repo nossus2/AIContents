@@ -2,4 +2,4 @@ openai
 langchain
 python-dotenv
 streamlit
-langchain-community
+langchain_openai
