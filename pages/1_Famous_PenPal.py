@@ -101,16 +101,17 @@ if input_text:
             st.write("There is something inappropriate about what you asked.")
         else:
             script = chainS.invoke(input_text)
-            for chunk in script.splitlines():
-                for letter in chunk.split():
-                    full_response += letter + " "
-                    time.sleep(0.05)
+            #for chunk in script.splitlines():
+                #for letter in chunk.split():
+                    #full_response += letter + " "
+                    #time.sleep(0.05)
                     # Add a blinking cursor to simulate typing
-                    message_placeholder.markdown(full_response + "▌")
+                    #message_placeholder.markdown(full_response + "▌")
                 # Add return spaces in markdown
-                full_response += """
+                #full_response += """
         
-                """
-            message_placeholder.markdown(full_response)
+               # """
+            #message_placeholder.markdown(full_response)
+            message_placeholder.markdown(script)
             st.session_state.messages.append({"role": "assistant", "content": script})
 
