@@ -4,7 +4,7 @@ import sys
 import streamlit as st
 import time
 
-from langchain.llms import OpenAI
+from langchain_community.llms import OpenAI
 
 from langchain.chains import LLMChain
 from langchain.prompts import (PromptTemplate)
@@ -35,7 +35,7 @@ with st.sidebar:
             'Choose a historical figure for the AI to imitate:',
             ('Martin Luther King, Jr.', 'Amelia Earhart', 'Winston Churchill', 'Anna May Wong', 'Nelson Mandela',
              'Marie Curie', 'Wolfgang Amadeus Mozart', 'Karl Marx', 'Gautama Buddha', 'Leonardo da Vinci',
-             'Jerry Garcia', 'Dali Llama', 'Carl Jung')
+             'Jerry Garcia', 'Dali Llama', 'Carl Jung', 'Vladek Spiegelman', 'Artie Spiegelman')
         )
     elif option == "Fictional Figure":
         author_option = st.selectbox(
@@ -100,7 +100,7 @@ if input_text:
         if is_flagged == True:
             st.write("There is something inappropriate about what you asked.")
         else:
-            script = chainS.run(input_text)
+            script = chainS.invoke(input_text)
             for chunk in script.splitlines():
                 for letter in chunk.split():
                     full_response += letter + " "

@@ -4,7 +4,7 @@ import sys
 import streamlit as st
 import time
 
-from langchain.llms import OpenAI
+from langchain_community.llms import OpenAI
 
 from langchain.chains import LLMChain
 from langchain.prompts import (PromptTemplate)
@@ -91,7 +91,7 @@ if input_text := st.chat_input("Quid agis?"):
 if input_text and input_text[:2] == "qs":
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
-        title = chainT.run(input_text)
+        title = chainT.invoke(input_text)
         message_placeholder.markdown(title)
         st.session_state.messages.append({"role": "assistant", "content": title})
 
@@ -99,7 +99,7 @@ elif input_text:
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
         full_response = ""
-        script = chainS.run(input_text)
+        script = chainS.invoke(input_text)
         for chunk in script.splitlines():
             for letter in chunk.split():
                 full_response += letter + " "
