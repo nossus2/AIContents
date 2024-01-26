@@ -4,11 +4,11 @@ import sys
 import streamlit as st
 import time
 
-from langchain_openai import OpenAI
+from langchain.chat_models import ChatOpenAI
 
 from langchain.chains import LLMChain
 from langchain.prompts import (PromptTemplate)
-from langchain.memory import (ConversationBufferMemory)
+from langchain.memory import (ConversationSummaryMemory)
 
 sys.path.append('../..')
 
@@ -56,21 +56,24 @@ with st.sidebar:
 script_template = PromptTemplate(
     input_variables=['convo'],
     partial_variables={'author': author_option, 'name': userName},
-    template='''Reply to the {convo} as if you are the {author}.  You reply in the same style that {author} would write in.  
+    template='''{history}
+    Reply to {convo} as if you are {author}.  You reply in the same style that {author} would write in.  
     Always respond in English.  Reply as if composing a letter to {name} with the closing and signature on its own line.  
     Do not write a poem or an essay.  
-    Limit the response to 800 tokens.'''
+    Limit the response to 500 tokens.'''
 )
-memoryS = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
-model = OpenAI(temperature=0, max_tokens=500)
-chainS = LLMChain(llm=model, prompt=script_template, verbose=True, output_key='script', memory=memoryS)
+
+model_mem = ChatOpenAI(temperature=0, max_tokens=250, model_name="gpt-3.5-turbo")
+model = ChatOpenAI(temperature=0, max_tokens=500, model_name="gpt-3.5-turbo")
+memorySt = ConversationSummaryMemory(llm=model_mem, memory_key='history', return_messages=True)
+chainSt = LLMChain(llm=model, prompt=script_template, verbose=True, output_key='script', memory=memorySt)
 
 with st.sidebar:
     # reset button
     if st.button("Clear Messages", type="primary"):
         # streamlit_js_eval(js_expressions="parent.window.location.reload()")
         st.session_state.messages.clear()
-        memoryS.clear()
+        memorySt.clear()
 
 # Initialize chat history
 if "messages" not in st.session_state:
@@ -93,25 +96,29 @@ if input_text:
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
         full_response = ""
+        # moderate the post for harmful language
         from openai import OpenAI
-
         client = OpenAI()
         moderate_dict = client.moderations.create(input=input_text).model_dump()
         is_flagged = moderate_dict["results"][0]["flagged"]
+
         if is_flagged == True:
             st.write("There is something inappropriate about what you asked.")
-        else:
-            script = chainS.invoke(input_text)
-            for chunk in script['script'].splitlines():
-                for letter in chunk.split():
-                    full_response += letter + " "
-                    time.sleep(0.05)
-                    # Add a blinking cursor to simulate typing
-                    message_placeholder.markdown(full_response + "▌")
-                # Add return spaces in markdown
-                full_response += """
 
-             """
+        else:
+            with st.spinner("Thinking..."):
+                if st.session_state.messages:
+                    for i in range(len(st.session_state.messages)):
+                        if "content" in st.session_state.messages[i] and st.session_state.messages[i]["role"] == "user":
+                            question = st.session_state.messages[i]["content"]
+                        if "content" in st.session_state.messages[i] and st.session_state.messages[i]["role"] == "assistant":
+                            answer = st.session_state.messages[i]["content"]
+                            memorySt.save_context({"input": question}, {"output": answer})
+                script = chainSt.invoke(input_text)
+            for letter in script["script"]:
+                full_response += letter + ("")
+                time.sleep(0.03)
+                message_placeholder.markdown(full_response + "▌")
             message_placeholder.markdown(full_response)
             st.session_state.messages.append({"role": "assistant", "content": full_response})
 
