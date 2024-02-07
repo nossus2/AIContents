@@ -3,3 +3,12 @@ langchain
 python-dotenv
 streamlit
 langchain_openai
+pandas
+numpy
+matplotlib
+streamlit
+openai
+langchain
+seaborn
+python-dotenv
+geopandas
