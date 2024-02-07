@@ -33,15 +33,12 @@ with st.sidebar:
     if option == 'Historical Figure':
         author_option = st.selectbox(
             'Choose a historical figure for the AI to imitate:',
-            ('Martin Luther King, Jr.', 'Amelia Earhart', 'Winston Churchill', 'Anna May Wong', 'Nelson Mandela',
-             'Marie Curie', 'Wolfgang Amadeus Mozart', 'Karl Marx', 'Gautama Buddha', 'Leonardo da Vinci',
-             'Jerry Garcia', 'Dali Llama', 'Carl Jung', 'Vladek Spiegelman', 'Artie Spiegelman')
+            ('Martin Luther King, Jr.', 'Amelia Earhart', 'Winston Churchill', 'Vladek Spiegelman', 'Artie Spiegelman')
         )
     elif option == "Fictional Figure":
         author_option = st.selectbox(
             'Choose a literary figure for the AI to imitate:',
-            ('Hermione Granger', 'Nancy Drew', "Prince Hamlet", 'Atticus Finch', 'Willy Wonka',
-             'Gandalf', 'Captain Ahab', 'Columbo', 'Superman', 'George Costanza')
+            ('Odysseus', 'Calypso', 'Telemachus', 'Penelope', 'Athena', 'Circe', 'Polyphemus')
         )
     else:
         author_option = st.selectbox(
