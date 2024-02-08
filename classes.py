@@ -12,6 +12,7 @@ import matplotlib
 import matplotlib.pyplot as pyplot
 import streamlit as st
 import io
+import seaborn as sns
 
 # Load API Key
 sys.path.append('../..')

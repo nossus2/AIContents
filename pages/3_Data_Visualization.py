@@ -3,6 +3,10 @@ import streamlit as st
 from classes import get_primer, format_question, run_request
 import warnings
 
+import matplotlib
+import matplotlib.pyplot as pyplot
+import seaborn as sns
+
 warnings.filterwarnings("ignore")
 st.set_option('deprecation.showPyplotGlobalUse', False)
 st.set_page_config(page_icon="chat2vis.png", layout="wide", page_title="Chat2VIS")
