@@ -53,7 +53,7 @@ with st.sidebar:
 
     with st.container(border=True):
         # Keep a dictionary of whether models are selected or not
-        use_model = st.selectbox(':brain: Choose your model(s):', available_models.keys())
+        use_model = st.selectbox(':brain: Choose your model:', available_models.keys())
         use_model = available_models[use_model]
 
 # AI template which passes framework for response
