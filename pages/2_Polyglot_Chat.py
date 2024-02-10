@@ -4,8 +4,7 @@ import sys
 import streamlit as st
 import time
 
-from langchain_openai import OpenAI
-
+from langchain_openai import ChatOpenAI
 from langchain.chains import LLMChain
 from langchain.prompts import (PromptTemplate)
 from langchain.memory import (ConversationBufferMemory)
@@ -16,6 +15,8 @@ from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 
 openai.api_key  = os.environ['OPENAI_API_KEY']
+
+available_models = {"ChatGPT-3.5": "gpt-3.5-turbo", "ChatGPT-4": "gpt-4"}
 
 st.title('Polyglot Chat')
 with st.expander('Instructions'):
@@ -55,12 +56,19 @@ with st.sidebar:
     script_template = PromptTemplate(
         input_variables = ['convo'],
         partial_variables = {'language': option, 'author': author_option},
-        template='''Do not repeat {convo} when responding. If {convo} is in English, reply to it in {language}.  Reply in {language} to {convo} with no English translation.  
-        Use the {language} in the style of {author}.'''
+        template='''
+        Do not repeat {convo} when responding. If {convo} is in English, reply to it in {language}.  
+        Reply in {language} to {convo} with no English translation.  
+        Use the {language} in the style of {author}.  Be thorough and complete in your response.'''
     )
 
+    with st.container(border=True):
+        # Keep a dictionary of whether models are selected or not
+        use_model = st.selectbox(':brain: Choose your model(s):',available_models.keys())
+        use_model = available_models[use_model]
+
 memoryS = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
-model = OpenAI(max_tokens=300, temperature=0)
+model = ChatOpenAI(temperature=0, max_tokens=400, model_name=use_model)
 chainT = LLMChain(llm=model, prompt=title_template, verbose=True, output_key='title')
 chainS = LLMChain(llm=model, prompt=script_template, verbose=True, output_key='script', memory=memoryS)
 
@@ -91,24 +99,44 @@ if input_text := st.chat_input("Quid agis?"):
 if input_text and input_text[:2] == "qs":
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
-        title = chainT.invoke(input_text)
-        message_placeholder.markdown(title)
-        st.session_state.messages.append({"role": "assistant", "content": title})
+
+        # moderate the post for harmful language
+        from openai import OpenAI
+        client = OpenAI()
+        moderate_dict = client.moderations.create(input=input_text).model_dump()
+        is_flagged = moderate_dict["results"][0]["flagged"]
+        if is_flagged == True:
+            st.write("There is something inappropriate about what you asked.")
+        else:
+            title = chainT.invoke(input_text)
+            message_placeholder.markdown(title)
+            st.session_state.messages.append({"role": "assistant", "content": title})
 
 elif input_text:
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
         full_response = ""
-        script = chainS.invoke(input_text)
-        for chunk in script['script'].splitlines():
-            for letter in chunk.split():
-                full_response += letter + " "
-                time.sleep(0.05)
-                # Add a blinking cursor to simulate typing
+
+        # moderate the post for harmful language
+        from openai import OpenAI
+        client = OpenAI()
+        moderate_dict = client.moderations.create(input=input_text).model_dump()
+        is_flagged = moderate_dict["results"][0]["flagged"]
+        if is_flagged == True:
+            st.write("There is something inappropriate about what you asked.")
+        else:
+            with st.spinner("Thinking..."):
+                if st.session_state.messages:
+                    for i in range(len(st.session_state.messages)):
+                        if "content" in st.session_state.messages[i] and st.session_state.messages[i]["role"] == "user":
+                            question = st.session_state.messages[i]["content"]
+                        if "content" in st.session_state.messages[i] and st.session_state.messages[i]["role"] == "assistant":
+                            answer = st.session_state.messages[i]["content"]
+                            memoryS.save_context({"input": question}, {"output": answer})
+                script = chainS.invoke(input_text)
+            for letter in script["script"]:
+                full_response += letter + ("")
+                time.sleep(0.02)
                 message_placeholder.markdown(full_response + "▌")
-            full_response += """
-
-            """
-        message_placeholder.markdown(full_response)
-        st.session_state.messages.append({"role": "assistant", "content": full_response})
-
+            message_placeholder.markdown(full_response)
+            st.session_state.messages.append({"role": "assistant", "content": full_response})

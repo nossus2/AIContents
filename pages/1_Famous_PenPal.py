@@ -18,6 +18,8 @@ _ = load_dotenv(find_dotenv())  # read local .env file
 
 openai.api_key = os.environ['OPENAI_API_KEY']
 
+available_models = {"ChatGPT-3.5": "gpt-3.5-turbo", "ChatGPT-4": "gpt-4"}
+
 st.title('Famous Pen Pals')
 with st.expander('Instructions'):
     st.markdown(':blue[1. type your name in the sidebar]')
@@ -49,19 +51,24 @@ with st.sidebar:
 
     userName = st.text_input("Type your name: ")
 
+    with st.container(border=True):
+        # Keep a dictionary of whether models are selected or not
+        use_model = st.selectbox(':brain: Choose your model(s):', available_models.keys())
+        use_model = available_models[use_model]
+
 # AI template which passes framework for response
 script_template = PromptTemplate(
     input_variables=['convo'],
     partial_variables={'author': author_option, 'name': userName},
     template='''{history}
-    Reply to {convo} as if you are {author}.  You reply in the same style that {author} would write in.  
-    Always respond in English.  Reply as if composing a letter to {name} with the closing and signature on its own line.  
-    Do not write a poem or an essay.  
-    Limit the response to 500 tokens.'''
+        Reply to {convo} as if you are {author}.  You reply in the same style that {author} would write in.  
+        Always respond in English.  Reply as if composing a letter to {name} with the closing and signature on its own line.  
+        Do not write a poem or an essay.  
+        Limit the response to 500 tokens.'''
 )
 
-model_mem = ChatOpenAI(temperature=0, max_tokens=250, model_name="gpt-3.5-turbo")
-model = ChatOpenAI(temperature=0, max_tokens=500, model_name="gpt-3.5-turbo")
+model_mem = ChatOpenAI(temperature=0, max_tokens=250, model_name=use_model)
+model = ChatOpenAI(temperature=0, max_tokens=500, model_name=use_model)
 memorySt = ConversationSummaryMemory(llm=model_mem, memory_key='history', return_messages=True)
 chainSt = LLMChain(llm=model, prompt=script_template, verbose=True, output_key='script', memory=memorySt)
 
@@ -95,6 +102,7 @@ if input_text:
         full_response = ""
         # moderate the post for harmful language
         from openai import OpenAI
+
         client = OpenAI()
         moderate_dict = client.moderations.create(input=input_text).model_dump()
         is_flagged = moderate_dict["results"][0]["flagged"]
@@ -108,13 +116,14 @@ if input_text:
                     for i in range(len(st.session_state.messages)):
                         if "content" in st.session_state.messages[i] and st.session_state.messages[i]["role"] == "user":
                             question = st.session_state.messages[i]["content"]
-                        if "content" in st.session_state.messages[i] and st.session_state.messages[i]["role"] == "assistant":
+                        if "content" in st.session_state.messages[i] and st.session_state.messages[i][
+                            "role"] == "assistant":
                             answer = st.session_state.messages[i]["content"]
                             memorySt.save_context({"input": question}, {"output": answer})
                 script = chainSt.invoke(input_text)
             for letter in script["script"]:
                 full_response += letter + ("")
-                time.sleep(0.03)
+                time.sleep(0.02)
                 message_placeholder.markdown(full_response + "▌")
             message_placeholder.markdown(full_response)
             st.session_state.messages.append({"role": "assistant", "content": full_response})
