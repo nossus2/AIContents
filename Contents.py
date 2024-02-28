@@ -21,5 +21,8 @@ st.markdown(
     **Polyglot Chat** allows you to interact with an author in their native language.
     You can also find the definition of words or characters.  Be sure to read the instructions!
     
+    **Data Visualization** allows you to use an existing .csv or to upload your own.
+    You can then use natural language to plot the data.
+    
 """
 )

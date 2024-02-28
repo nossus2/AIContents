@@ -53,8 +53,11 @@ with st.sidebar:
 
     with st.container(border=True):
         # Keep a dictionary of whether models are selected or not
-        use_model = st.selectbox(':brain: Choose your model:', available_models.keys())
+        use_model = st.selectbox(':brain: Choose your model(s):',available_models.keys())
+        # Assign temperature for AI
         use_model = available_models[use_model]
+        aiTemp = st.slider(':sparkles: Choose AI variance or creativity:', 0.0, 1.0, 0.0, 0.1)
+
 
 # AI template which passes framework for response
 script_template = PromptTemplate(
@@ -68,7 +71,7 @@ script_template = PromptTemplate(
 )
 
 model_mem = ChatOpenAI(temperature=0, max_tokens=250, model_name=use_model)
-model = ChatOpenAI(temperature=0, max_tokens=500, model_name=use_model)
+model = ChatOpenAI(temperature=aiTemp, max_tokens=500, model_name=use_model)
 memorySt = ConversationSummaryMemory(llm=model_mem, memory_key='history', return_messages=True)
 chainSt = LLMChain(llm=model, prompt=script_template, verbose=True, output_key='script', memory=memorySt)
 
